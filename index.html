@@ -42,11 +42,14 @@
 
   .table-card { background: var(--lila-card); border-radius: 12px; box-shadow: 0 2px 12px rgba(91, 58, 168, 0.08); overflow: hidden; }
   table.wochenplan { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-  table.wochenplan th, table.wochenplan td { border: 1px solid var(--border); padding: 0; height: 22px; text-align: center; vertical-align: middle; }
-  table.wochenplan th { background: var(--lila-bg); color: var(--lila-dark); font-weight: 600; padding: 0.5rem 0.25rem; font-size: 0.82rem; }
+  table.wochenplan th { background: var(--lila-bg); color: var(--lila-dark); font-weight: 600; padding: 0.5rem 0.25rem; font-size: 0.82rem; border: 1px solid var(--border); text-align: center; }
   table.wochenplan th.heute { background: var(--lila-dark); color: white; }
-  table.wochenplan td.uhrzeit { width: 50px; background: var(--lila-bg); color: var(--muted); font-size: 0.72rem; font-weight: 500; padding: 0 4px; text-align: right; }
-  table.wochenplan td.slot { width: 13%; }
+  table.wochenplan td { padding: 0; vertical-align: middle; line-height: 0; }
+  table.wochenplan td.uhrzeit { width: 50px; background: var(--lila-bg); color: var(--muted); font-size: 0.72rem; font-weight: 500; padding: 0 4px; text-align: right; line-height: 1.2; border-right: 1px solid var(--border); height: 5px; }
+  table.wochenplan td.slot { width: 13%; height: 5px; border-left: 1px solid var(--border); border-right: 1px solid var(--border); }
+  table.wochenplan tr.volle-stunde td { border-top: 1px solid var(--border); }
+  table.wochenplan tr.volle-stunde td.uhrzeit { height: 5px; padding-top: 2px; }
+  table.wochenplan tr:last-child td { border-bottom: 1px solid var(--border); }
   table.wochenplan td.gebucht    { background: var(--gebucht); }
   table.wochenplan td.vorbehalt  { background: var(--vorbehalt); }
 
@@ -209,7 +212,7 @@ function parseICS(icsText) {
 const TAGE = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 const STUNDE_VON = 8;
 const STUNDE_BIS = 22;
-const SLOT_MIN   = 30;
+const SLOT_MIN   = 5;
 
 function renderWeek() {
   const ws = state.weekStart;
@@ -267,7 +270,8 @@ function renderWeek() {
     const hh = Math.floor(minutesTotal / 60);
     const mm = minutesTotal % 60;
     const label = (mm === 0) ? (String(hh).padStart(2, '0') + ':00') : '';
-    html += '<tr><td class="uhrzeit">' + label + '</td>';
+    const trClass = (mm === 0) ? ' class="volle-stunde"' : '';
+    html += '<tr' + trClass + '><td class="uhrzeit">' + label + '</td>';
     for (let t = 0; t < 7; t++) {
       const cls = grid[t][s];
       html += '<td class="slot ' + cls + '"></td>';
