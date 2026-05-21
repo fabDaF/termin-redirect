@@ -1,0 +1,51 @@
+name: Sync ICS calendar feed
+
+# Holt den veröffentlichten Outlook-ICS-Kalender und committet ihn als
+# calendar.ics, damit die Wochen-Render-Seite ihn same-origin fetchen kann.
+# Cron läuft alle 30 Minuten — das ist genau genug für Schüler-Termine.
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/sync-ics.yml']
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-ics
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch ICS feed
+        run: |
+          set -euo pipefail
+          URL='https://outlook.office365.com/owa/calendar/9e10cf36d2a34bc5bf41593eff44a6f6@frankburkert-daf.de/65631950c3c24ded9570ecdf81b6b28f2363895945707083563/calendar.ics'
+          curl -fsSL --retry 3 --retry-delay 5 -A 'Mozilla/5.0 fabDaF-sync' "$URL" -o calendar.ics.new
+          # Sanity: muss BEGIN:VCALENDAR enthalten
+          if ! grep -q 'BEGIN:VCALENDAR' calendar.ics.new; then
+            echo "::error::ICS-Antwort sah nicht wie ein gültiger Kalender aus"
+            head -c 500 calendar.ics.new
+            exit 1
+          fi
+          mv calendar.ics.new calendar.ics
+
+      - name: Commit & push if changed
+        run: |
+          git config user.name 'fabDaF ICS sync'
+          git config user.email 'noreply@github.com'
+          git add calendar.ics
+          if git diff --staged --quiet; then
+            echo "Keine Änderung — nichts zu committen."
+          else
+            git commit -m "ICS sync $(date -u +%FT%TZ)"
+            git push
+          fi
