@@ -283,10 +283,9 @@ function renderWeek() {
       const wPct = 100 / lanes;
       const left = 'calc(' + (lane * wPct) + '% + ' + gap + 'px)';
       const width = 'calc(' + wPct + '% - ' + (gap * 2) + 'px)';
-      const showLbl = h >= 30;
-      col += '<div class="ev ' + e.kind + '" style="top:' + top + 'px;height:' + (h - 1) + 'px;left:' + left + ';width:' + width + '">'
+      const titel = (e.kind === 'vorbehalt') ? 'mit Vorbehalt' : 'belegt';
+      col += '<div class="ev ' + e.kind + '" title="' + titel + '" style="top:' + top + 'px;height:' + (h - 1) + 'px;left:' + left + ';width:' + width + '">'
            + '<span class="t">' + e._label + '</span>'
-           + (showLbl ? '<span class="lbl">' + (e.kind === 'vorbehalt' ? 'mit Vorbehalt' : 'belegt') + '</span>' : '')
            + '</div>';
     }
 
