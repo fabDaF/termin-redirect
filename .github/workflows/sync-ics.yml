@@ -1,7 +1,11 @@
 name: Sync ICS calendar feed
 
-# Holt den veröffentlichten Outlook-ICS-Kalender und committet ihn als
-# calendar.ics, damit die Wochen-Render-Seite ihn same-origin fetchen kann.
+# Holt den veröffentlichten Outlook-ICS-Kalender, EXPANDIERT ihn in lauter
+# Einzeltermine (flatten_ics.py) und committet das Ergebnis als calendar.ics.
+# Das Flach-Machen ist der Wurzel-Fix gegen den Render-Bug: die Seite
+# verarbeitet jeden VEVENT einzeln und verknüpft Serien-Ausnahmen nicht
+# sauber -> bei flachen Einzelterminen kann sie nichts mehr falsch
+# zusammensetzen (Vorfall "Julia", siehe Externer-Kalender.md).
 # Cron läuft alle 30 Minuten — das ist genau genug für Schüler-Termine.
 
 on:
@@ -25,18 +29,38 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install --quiet icalendar recurring_ical_events python-dateutil
+
       - name: Fetch ICS feed
         run: |
           set -euo pipefail
           URL='https://outlook.office365.com/owa/calendar/9e10cf36d2a34bc5bf41593eff44a6f6@frankburkert-daf.de/65631950c3c24ded9570ecdf81b6b28f2363895945707083563/calendar.ics'
-          curl -fsSL --retry 3 --retry-delay 5 -A 'Mozilla/5.0 fabDaF-sync' "$URL" -o calendar.ics.new
+          curl -fsSL --retry 3 --retry-delay 5 -A 'Mozilla/5.0 fabDaF-sync' "$URL" -o "$RUNNER_TEMP/calendar_source.ics"
           # Sanity: muss BEGIN:VCALENDAR enthalten
-          if ! grep -q 'BEGIN:VCALENDAR' calendar.ics.new; then
+          if ! grep -q 'BEGIN:VCALENDAR' "$RUNNER_TEMP/calendar_source.ics"; then
             echo "::error::ICS-Antwort sah nicht wie ein gültiger Kalender aus"
-            head -c 500 calendar.ics.new
+            head -c 500 "$RUNNER_TEMP/calendar_source.ics"
             exit 1
           fi
-          mv calendar.ics.new calendar.ics
+
+      - name: Flatten recurring events
+        run: |
+          set -euo pipefail
+          # Expandiert Serien in Einzeltermine. flatten_ics.py beendet sich
+          # mit Fehler (ohne Zieldatei zu schreiben), wenn das Ergebnis
+          # unplausibel ist -> set -e bricht ab -> kein kaputter Commit.
+          python3 scripts/flatten_ics.py "$RUNNER_TEMP/calendar_source.ics" calendar.ics
+          # Doppelter Sanity-Check auf der ausgelieferten Datei.
+          if ! grep -q 'BEGIN:VEVENT' calendar.ics; then
+            echo "::error::Flacher Feed enthält keine Termine"
+            exit 1
+          fi
 
       - name: Commit & push if changed
         run: |
