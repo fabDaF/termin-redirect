@@ -49,14 +49,14 @@
 
   /* ---- Stundenplan ---- */
   .cal-scroll { overflow-x: auto; }
-  .cal { min-width: 620px; }
-  .cal-head { display: grid; grid-template-columns: 52px repeat(7, 1fr); border-bottom: 1px solid var(--border); }
+  .cal { min-width: 480px; }
+  .cal-head { display: grid; grid-template-columns: 52px repeat(5, 1fr); border-bottom: 1px solid var(--border); }
   .cal-head .gutter-h { background: var(--lila-bg); }
   .cal-head .dh { text-align: center; padding: 0.45rem 0.2rem; background: var(--lila-bg); color: var(--lila-dark); font-weight: 600; font-size: 0.8rem; border-left: 1px solid var(--border); line-height: 1.25; }
   .cal-head .dh.heute { background: var(--lila-dark); color: #fff; }
   .cal-head .dh small { display: block; font-weight: 400; font-size: 0.74rem; opacity: 0.85; }
 
-  .cal-body { display: grid; grid-template-columns: 52px repeat(7, 1fr); position: relative; }
+  .cal-body { display: grid; grid-template-columns: 52px repeat(5, 1fr); position: relative; }
   .gutter { position: relative; background: var(--lila-bg); border-right: 1px solid var(--border); }
   .gutter .hr { position: absolute; right: 4px; font-size: 0.68rem; color: var(--muted); transform: translateY(-50%); }
   .daycol { position: relative; border-left: 1px solid var(--border);
@@ -230,7 +230,7 @@ function layoutDay(evs) {
 function renderWeek() {
   const ws = state.weekStart;
   document.getElementById('zeitraum').textContent =
-    fmtDeLang(ws) + ' – ' + fmtDeLang(addDays(ws, 6)) + ' · KW ' + isoWeek(ws);
+    fmtDeLang(ws) + ' – ' + fmtDeLang(addDays(ws, 4)) + ' · KW ' + isoWeek(ws);
 
   const heute = new Date();
   const pxh = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--PXH')) || 52;
@@ -238,7 +238,7 @@ function renderWeek() {
 
   // Kopfzeile
   let head = '<div class="cal-head"><div class="gutter-h"></div>';
-  for (let t = 0; t < 7; t++) {
+  for (let t = 0; t < 5; t++) {
     const tag = addDays(ws, t);
     const cls = 'dh' + (sameDay(tag, heute) ? ' heute' : '');
     head += '<div class="' + cls + '">' + TAGE_KURZ[t] + '<small>' + fmtDe(tag) + '</small></div>';
@@ -253,9 +253,9 @@ function renderWeek() {
   }
   gutter += '</div>';
 
-  // Tagesspalten
+  // Tagesspalten (Mo–Fr)
   let cols = '';
-  for (let t = 0; t < 7; t++) {
+  for (let t = 0; t < 5; t++) {
     const tagStart = addDays(ws, t);
     const tagEnde = addDays(ws, t + 1);
     const istHeute = sameDay(tagStart, heute);
