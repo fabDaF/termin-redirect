@@ -13,11 +13,16 @@
     --lila-light: #d4caf1;
     --lila-card:  #ffffff;
     --gebucht:    #5b3aa8;
+    --gebucht2:   #6f4cc4;
     --vorbehalt:  #b89cf2;
     --frei:       #ffffff;
     --text:       #3b2a6b;
     --muted:      #7a6db0;
     --border:     #ece8f8;
+    --grid-line:  #e7e2f6;
+    --grid-half:  #f1eefb;
+    --now:        #e0556b;
+    --PXH:        52px;   /* Höhe einer Stunde */
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--lila-bg); color: var(--text); }
@@ -41,17 +46,35 @@
   .legend i.vorbehalt { background: var(--vorbehalt); }
 
   .table-card { background: var(--lila-card); border-radius: 12px; box-shadow: 0 2px 12px rgba(91, 58, 168, 0.08); overflow: hidden; }
-  table.wochenplan { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-  table.wochenplan th { background: var(--lila-bg); color: var(--lila-dark); font-weight: 600; padding: 0.5rem 0.25rem; font-size: 0.82rem; border: 1px solid var(--border); text-align: center; }
-  table.wochenplan th.heute { background: var(--lila-dark); color: white; }
-  table.wochenplan td { padding: 0; vertical-align: middle; line-height: 0; }
-  table.wochenplan td.uhrzeit { width: 50px; background: var(--lila-bg); color: var(--muted); font-size: 0.72rem; font-weight: 500; padding: 0 4px; text-align: right; line-height: 1.2; border-right: 1px solid var(--border); height: 5px; }
-  table.wochenplan td.slot { width: 13%; height: 5px; border-left: 1px solid var(--border); border-right: 1px solid var(--border); }
-  table.wochenplan tr.volle-stunde td { border-top: 1px solid var(--border); }
-  table.wochenplan tr.volle-stunde td.uhrzeit { height: 5px; padding-top: 2px; }
-  table.wochenplan tr:last-child td { border-bottom: 1px solid var(--border); }
-  table.wochenplan td.gebucht    { background: var(--gebucht); }
-  table.wochenplan td.vorbehalt  { background: var(--vorbehalt); }
+
+  /* ---- Stundenplan ---- */
+  .cal-scroll { overflow-x: auto; }
+  .cal { min-width: 620px; }
+  .cal-head { display: grid; grid-template-columns: 52px repeat(7, 1fr); border-bottom: 1px solid var(--border); }
+  .cal-head .gutter-h { background: var(--lila-bg); }
+  .cal-head .dh { text-align: center; padding: 0.45rem 0.2rem; background: var(--lila-bg); color: var(--lila-dark); font-weight: 600; font-size: 0.8rem; border-left: 1px solid var(--border); line-height: 1.25; }
+  .cal-head .dh.heute { background: var(--lila-dark); color: #fff; }
+  .cal-head .dh small { display: block; font-weight: 400; font-size: 0.74rem; opacity: 0.85; }
+
+  .cal-body { display: grid; grid-template-columns: 52px repeat(7, 1fr); position: relative; }
+  .gutter { position: relative; background: var(--lila-bg); border-right: 1px solid var(--border); }
+  .gutter .hr { position: absolute; right: 4px; font-size: 0.68rem; color: var(--muted); transform: translateY(-50%); }
+  .daycol { position: relative; border-left: 1px solid var(--border);
+            background-image:
+              repeating-linear-gradient(to bottom, transparent 0, transparent calc(var(--PXH) - 1px), var(--grid-line) calc(var(--PXH) - 1px), var(--grid-line) var(--PXH)),
+              repeating-linear-gradient(to bottom, transparent 0, transparent calc(var(--PXH)/2 - 1px), var(--grid-half) calc(var(--PXH)/2 - 1px), var(--grid-half) calc(var(--PXH)/2)); }
+  .daycol.heute { background-color: #faf8ff; }
+  .daycol.wochenende { background-color: #fbfaff; }
+
+  .ev { position: absolute; left: 3%; width: 94%; border-radius: 6px; padding: 2px 5px; overflow: hidden;
+        font-size: 0.7rem; line-height: 1.15; color: #fff; background: linear-gradient(135deg, var(--gebucht), var(--gebucht2));
+        box-shadow: 0 1px 3px rgba(91,58,168,0.25); border: 1px solid rgba(255,255,255,0.25); }
+  .ev .t { font-weight: 700; font-size: 0.68rem; white-space: nowrap; }
+  .ev .lbl { font-size: 0.64rem; opacity: 0.92; }
+  .ev.vorbehalt { background: repeating-linear-gradient(45deg, var(--vorbehalt), var(--vorbehalt) 6px, #c7b2f5 6px, #c7b2f5 12px); color: #2f2256; border: 1px dashed #8a6fd0; box-shadow: none; }
+
+  .nowline { position: absolute; left: 0; right: 0; height: 2px; background: var(--now); z-index: 5; }
+  .nowline::before { content: ''; position: absolute; left: -3px; top: -3px; width: 8px; height: 8px; border-radius: 50%; background: var(--now); }
 
   .info { text-align: center; margin: 1rem 0 0.25rem; font-size: 0.92rem; color: var(--text); line-height: 1.5; }
   .info strong { color: var(--lila-dark); }
@@ -70,10 +93,8 @@
   @media (max-width: 640px) {
     .wrap { padding: 0.5rem; }
     header h1 { font-size: 1.1rem; }
-    table.wochenplan { font-size: 0.72rem; }
-    table.wochenplan th { font-size: 0.72rem; padding: 0.35rem 0.1rem; }
-    table.wochenplan td.uhrzeit { width: 38px; font-size: 0.62rem; }
     .legend { gap: 0.6rem; font-size: 0.74rem; }
+    :root { --PXH: 46px; }
   }
 </style>
 </head>
@@ -119,43 +140,24 @@
 <script>
 'use strict';
 
-// --- State ----------------------------------------------------------------
-const state = {
-  events: [],
-  weekStart: null,
-};
+const state = { events: [], weekStart: null };
+
+// Sichtbares Zeitfenster der Tagesspalten
+const STUNDE_VON = 7;
+const STUNDE_BIS = 21;
+const TAGE = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
+const TAGE_KURZ = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 
 // --- Datum-Helfer ---------------------------------------------------------
-function startOfWeek(d) {
-  const x = new Date(d);
-  x.setHours(0, 0, 0, 0);
-  const wd = (x.getDay() + 6) % 7;   // Mo=0 … So=6
-  x.setDate(x.getDate() - wd);
-  return x;
-}
-function addDays(d, n) {
-  const x = new Date(d);
-  x.setDate(x.getDate() + n);
-  return x;
-}
-function fmtDe(d) {
-  return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
-}
-function fmtDeLang(d) {
-  return d.toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' });
-}
-function isoWeek(d) {
-  const t = new Date(d);
-  t.setHours(0, 0, 0, 0);
-  t.setDate(t.getDate() + 3 - ((t.getDay() + 6) % 7));
-  const week1 = new Date(t.getFullYear(), 0, 4);
-  return 1 + Math.round(((t - week1) / 86400000 - 3 + ((week1.getDay() + 6) % 7)) / 7);
-}
-function sameDay(a, b) {
-  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
-}
+function startOfWeek(d) { const x = new Date(d); x.setHours(0,0,0,0); const wd=(x.getDay()+6)%7; x.setDate(x.getDate()-wd); return x; }
+function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate()+n); return x; }
+function fmtDe(d) { return d.toLocaleDateString('de-DE', { day:'2-digit', month:'2-digit' }); }
+function fmtDeLang(d) { return d.toLocaleDateString('de-DE', { day:'2-digit', month:'short', year:'numeric' }); }
+function isoWeek(d) { const t=new Date(d); t.setHours(0,0,0,0); t.setDate(t.getDate()+3-((t.getDay()+6)%7)); const w1=new Date(t.getFullYear(),0,4); return 1+Math.round(((t-w1)/86400000-3+((w1.getDay()+6)%7))/7); }
+function sameDay(a, b) { return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
+function fmtUhr(d) { return d.toLocaleTimeString('de-DE', { hour:'2-digit', minute:'2-digit' }); }
 
-// --- ICS-Loading ---------------------------------------------------------
+// --- ICS laden ------------------------------------------------------------
 async function loadICS() {
   const url = 'calendar.ics?cb=' + Math.floor(Date.now() / 60000);
   const r = await fetch(url, { cache: 'no-cache' });
@@ -165,135 +167,150 @@ async function loadICS() {
   return parseICS(text);
 }
 
+// Der Feed wird serverseitig flach gemacht (flatten_ics.py): nur noch
+// Einzeltermine, keine Serien. Die Wiederholungs-Behandlung bleibt
+// defensiv erhalten, falls doch einmal eine Serie durchkommt.
 function parseICS(icsText) {
   const jcal = ICAL.parse(icsText);
   const comp = new ICAL.Component(jcal);
   const vevents = comp.getAllSubcomponents('vevent');
-  const fensterStart = ICAL.Time.fromJSDate(addDays(new Date(), -90), false);
-  const fensterEnde  = ICAL.Time.fromJSDate(addDays(new Date(), 365), false);
+  const fStart = ICAL.Time.fromJSDate(addDays(new Date(), -120), false);
+  const fEnde  = ICAL.Time.fromJSDate(addDays(new Date(), 400), false);
   const out = [];
   vevents.forEach(ve => {
-    let event;
-    try { event = new ICAL.Event(ve); } catch (e) { return; }
+    let event; try { event = new ICAL.Event(ve); } catch (e) { return; }
     const status = (ve.getFirstPropertyValue('status') || '').toString().toUpperCase();
     if (status === 'CANCELLED') return;
     const transp = (ve.getFirstPropertyValue('transp') || 'OPAQUE').toString().toUpperCase();
+    if (transp === 'TRANSPARENT') return;
+    const kind = (status === 'TENTATIVE') ? 'vorbehalt' : 'gebucht';
     try {
       if (event.isRecurring()) {
-        const it = event.iterator();
-        let occ;
-        let guard = 0;
+        const it = event.iterator(); let occ, guard = 0;
         while ((occ = it.next())) {
           if (++guard > 5000) break;
-          if (occ.compare(fensterEnde) > 0) break;
-          if (occ.compare(fensterStart) < 0) continue;
+          if (occ.compare(fEnde) > 0) break;
+          if (occ.compare(fStart) < 0) continue;
           const det = event.getOccurrenceDetails(occ);
-          out.push({
-            start: det.startDate.toJSDate(),
-            end:   det.endDate.toJSDate(),
-            transp: transp,
-            status: status
-          });
+          out.push({ start: det.startDate.toJSDate(), end: det.endDate.toJSDate(), kind });
         }
       } else {
-        out.push({
-          start: event.startDate.toJSDate(),
-          end:   event.endDate.toJSDate(),
-          transp: transp,
-          status: status
-        });
+        out.push({ start: event.startDate.toJSDate(), end: event.endDate.toJSDate(), kind });
       }
     } catch (e) { /* einzelner Eintrag korrupt — überspringen */ }
   });
   return out;
 }
 
-// --- Render --------------------------------------------------------------
-const TAGE = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
-const STUNDE_VON = 8;
-const STUNDE_BIS = 22;
-const SLOT_MIN   = 5;
+// --- Lane-Layout: überlappende Termine nebeneinander ----------------------
+function layoutDay(evs) {
+  evs.sort((a, b) => a.start - b.start || a.end - b.end);
+  // Cluster bilden (transitive Überlappung)
+  const clusters = []; let cur = []; let curEnd = null;
+  for (const e of evs) {
+    if (cur.length && e.start < curEnd) { cur.push(e); curEnd = new Date(Math.max(curEnd, e.end)); }
+    else { if (cur.length) clusters.push(cur); cur = [e]; curEnd = new Date(e.end); }
+  }
+  if (cur.length) clusters.push(cur);
+  const placed = [];
+  for (const cl of clusters) {
+    const lanes = [];
+    for (const e of cl) {
+      let li = lanes.findIndex(end => e.start >= end);
+      if (li === -1) { li = lanes.length; lanes.push(e.end); } else { lanes[li] = e.end; }
+      e._lane = li;
+    }
+    const n = lanes.length;
+    for (const e of cl) { e._lanes = n; placed.push(e); }
+  }
+  return placed;
+}
 
+// --- Render ---------------------------------------------------------------
 function renderWeek() {
   const ws = state.weekStart;
   document.getElementById('zeitraum').textContent =
-    fmtDeLang(ws) + ' – ' + fmtDeLang(addDays(ws, 6)) + ' · Woche ' + isoWeek(ws);
+    fmtDeLang(ws) + ' – ' + fmtDeLang(addDays(ws, 6)) + ' · KW ' + isoWeek(ws);
 
-  const we = addDays(ws, 7);
   const heute = new Date();
-  heute.setHours(0, 0, 0, 0);
+  const pxh = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--PXH')) || 52;
+  const bodyH = (STUNDE_BIS - STUNDE_VON) * pxh;
 
-  const slotsPerTag = (STUNDE_BIS - STUNDE_VON) * (60 / SLOT_MIN);
-  const grid = [];
-  for (let t = 0; t < 7; t++) {
-    grid.push(new Array(slotsPerTag).fill('frei'));
-  }
-
-  for (const ev of state.events) {
-    if (ev.end <= ws || ev.start >= we) continue;
-    const dauerStatus = (ev.transp === 'TRANSPARENT') ? null :
-                        (ev.status === 'TENTATIVE')  ? 'vorbehalt' : 'gebucht';
-    if (!dauerStatus) continue;
-    for (let t = 0; t < 7; t++) {
-      const tagStart = addDays(ws, t);
-      const tagEnde  = addDays(ws, t + 1);
-      if (ev.end <= tagStart || ev.start >= tagEnde) continue;
-      const evS = ev.start < tagStart ? tagStart : ev.start;
-      const evE = ev.end   > tagEnde  ? tagEnde  : ev.end;
-      const minStartTag = evS.getHours() * 60 + evS.getMinutes();
-      const minEndeTag  = (evE.getHours() === 0 && evE.getDate() !== evS.getDate())
-                          ? 24 * 60
-                          : evE.getHours() * 60 + evE.getMinutes();
-      const rasterStartMin = STUNDE_VON * 60;
-      const rasterEndeMin  = STUNDE_BIS * 60;
-      const sFrom = Math.max(0, Math.floor((minStartTag - rasterStartMin) / SLOT_MIN));
-      const sTo   = Math.min(slotsPerTag, Math.ceil((Math.min(minEndeTag, rasterEndeMin) - rasterStartMin) / SLOT_MIN));
-      for (let s = sFrom; s < sTo; s++) {
-        if (grid[t][s] === 'frei' || (grid[t][s] === 'vorbehalt' && dauerStatus === 'gebucht')) {
-          grid[t][s] = dauerStatus;
-        }
-      }
-    }
-  }
-
-  let html = '<table class="wochenplan"><thead><tr><th></th>';
+  // Kopfzeile
+  let head = '<div class="cal-head"><div class="gutter-h"></div>';
   for (let t = 0; t < 7; t++) {
     const tag = addDays(ws, t);
-    const istHeute = sameDay(tag, heute);
-    html += '<th' + (istHeute ? ' class="heute"' : '') + '>' + TAGE[t] +
-            '<br><span style="font-weight:400;font-size:0.78em;opacity:0.85;">' + fmtDe(tag) + '</span></th>';
+    const cls = 'dh' + (sameDay(tag, heute) ? ' heute' : '');
+    head += '<div class="' + cls + '">' + TAGE_KURZ[t] + '<small>' + fmtDe(tag) + '</small></div>';
   }
-  html += '</tr></thead><tbody>';
+  head += '</div>';
 
-  for (let s = 0; s < slotsPerTag; s++) {
-    const minutesTotal = STUNDE_VON * 60 + s * SLOT_MIN;
-    const hh = Math.floor(minutesTotal / 60);
-    const mm = minutesTotal % 60;
-    const label = (mm === 0) ? (String(hh).padStart(2, '0') + ':00') : '';
-    const trClass = (mm === 0) ? ' class="volle-stunde"' : '';
-    html += '<tr' + trClass + '><td class="uhrzeit">' + label + '</td>';
-    for (let t = 0; t < 7; t++) {
-      const cls = grid[t][s];
-      html += '<td class="slot ' + cls + '"></td>';
+  // Zeit-Gutter
+  let gutter = '<div class="gutter" style="height:' + bodyH + 'px">';
+  for (let h = STUNDE_VON; h <= STUNDE_BIS; h++) {
+    const top = (h - STUNDE_VON) * pxh;
+    gutter += '<div class="hr" style="top:' + top + 'px">' + String(h).padStart(2, '0') + ':00</div>';
+  }
+  gutter += '</div>';
+
+  // Tagesspalten
+  let cols = '';
+  for (let t = 0; t < 7; t++) {
+    const tagStart = addDays(ws, t);
+    const tagEnde = addDays(ws, t + 1);
+    const istHeute = sameDay(tagStart, heute);
+    const we = (t >= 5);
+    let col = '<div class="daycol' + (istHeute ? ' heute' : '') + (we ? ' wochenende' : '') + '" style="height:' + bodyH + 'px">';
+
+    // Events dieses Tages einsammeln + auf Tag begrenzen
+    const dayEvs = [];
+    for (const ev of state.events) {
+      if (ev.end <= tagStart || ev.start >= tagEnde) continue;
+      const s = ev.start < tagStart ? new Date(tagStart) : ev.start;
+      const e = ev.end > tagEnde ? new Date(tagEnde) : ev.end;
+      dayEvs.push({ start: s, end: e, kind: ev.kind, _label: fmtUhr(ev.start) + '–' + fmtUhr(ev.end) });
     }
-    html += '</tr>';
+    const placed = layoutDay(dayEvs);
+    for (const e of placed) {
+      const sMin = e.start.getHours() * 60 + e.start.getMinutes();
+      let eMin = e.end.getHours() * 60 + e.end.getMinutes();
+      if (eMin === 0 && !sameDay(e.start, e.end)) eMin = 24 * 60; // Mitternacht-Ende
+      const top = Math.max(0, (sMin - STUNDE_VON * 60) * pxh / 60);
+      const bottom = Math.min(bodyH, (eMin - STUNDE_VON * 60) * pxh / 60);
+      const h = Math.max(13, bottom - top);
+      const lanes = e._lanes || 1, lane = e._lane || 0;
+      const gap = 2;
+      const wPct = 100 / lanes;
+      const left = 'calc(' + (lane * wPct) + '% + ' + gap + 'px)';
+      const width = 'calc(' + wPct + '% - ' + (gap * 2) + 'px)';
+      const showLbl = h >= 30;
+      col += '<div class="ev ' + e.kind + '" style="top:' + top + 'px;height:' + (h - 1) + 'px;left:' + left + ';width:' + width + '">'
+           + '<span class="t">' + e._label + '</span>'
+           + (showLbl ? '<span class="lbl">' + (e.kind === 'vorbehalt' ? 'mit Vorbehalt' : 'belegt') + '</span>' : '')
+           + '</div>';
+    }
+
+    // "Jetzt"-Linie
+    if (istHeute && heute.getHours() >= STUNDE_VON && heute.getHours() < STUNDE_BIS) {
+      const nMin = heute.getHours() * 60 + heute.getMinutes();
+      const top = (nMin - STUNDE_VON * 60) * pxh / 60;
+      col += '<div class="nowline" style="top:' + top + 'px"></div>';
+    }
+
+    col += '</div>';
+    cols += col;
   }
-  html += '</tbody></table>';
 
-  document.getElementById('planslot').innerHTML = html;
+  document.getElementById('planslot').innerHTML =
+    '<div class="cal-scroll"><div class="cal">' + head +
+    '<div class="cal-body">' + gutter + cols + '</div></div></div>';
 }
 
-// --- Navigation ----------------------------------------------------------
-function go(deltaDays) {
-  state.weekStart = addDays(state.weekStart, deltaDays);
-  renderWeek();
-}
-function goToday() {
-  state.weekStart = startOfWeek(new Date());
-  renderWeek();
-}
+// --- Navigation -----------------------------------------------------------
+function go(deltaDays) { state.weekStart = addDays(state.weekStart, deltaDays); renderWeek(); }
+function goToday() { state.weekStart = startOfWeek(new Date()); renderWeek(); }
 
-// --- Init ----------------------------------------------------------------
+// --- Init -----------------------------------------------------------------
 async function init() {
   document.getElementById('btn-prev').addEventListener('click', () => go(-7));
   document.getElementById('btn-next').addEventListener('click', () => go(7));
