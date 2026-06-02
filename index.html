@@ -42,8 +42,8 @@
   .legend span { display: inline-flex; align-items: center; gap: 0.4rem; }
   .legend i { display: inline-block; width: 14px; height: 14px; border: 1px solid var(--border); border-radius: 3px; }
   .legend i.frei      { background: var(--frei); }
-  .legend i.gebucht   { background: var(--gebucht); }
-  .legend i.vorbehalt { background: var(--vorbehalt); }
+  .legend i.gebucht   { background: linear-gradient(90deg, #2f6cc0, #1f9b82, #c07f1d, #c44f7d, #6f4cc4); }
+  .legend i.vorbehalt { background: #d9cdf5; border-style: dashed; }
 
   .table-card { background: var(--lila-card); border-radius: 12px; box-shadow: 0 2px 12px rgba(91, 58, 168, 0.08); overflow: hidden; }
 
@@ -66,12 +66,18 @@
   .daycol.heute { background-color: #faf8ff; }
   .daycol.wochenende { background-color: #fbfaff; }
 
-  .ev { position: absolute; left: 3%; width: 94%; border-radius: 6px; padding: 2px 5px; overflow: hidden;
-        font-size: 0.7rem; line-height: 1.15; color: #fff; background: linear-gradient(135deg, var(--gebucht), var(--gebucht2));
-        box-shadow: 0 1px 3px rgba(91,58,168,0.25); border: 1px solid rgba(255,255,255,0.25); }
-  .ev .t { font-weight: 700; font-size: 0.68rem; white-space: nowrap; }
-  .ev .lbl { font-size: 0.64rem; opacity: 0.92; }
-  .ev.vorbehalt { background: repeating-linear-gradient(45deg, var(--vorbehalt), var(--vorbehalt) 6px, #c7b2f5 6px, #c7b2f5 12px); color: #2f2256; border: 1px dashed #8a6fd0; box-shadow: none; }
+  .ev { position: absolute; left: 3%; width: 94%; border-radius: 7px; padding: 3px 6px; overflow: hidden;
+        font-size: 0.7rem; line-height: 1.15; color: #fff; background: #5b3aa8;
+        box-shadow: 0 1px 4px rgba(40,30,80,0.22); border: 1px solid rgba(255,255,255,0.28);
+        border-left: 4px solid rgba(0,0,0,0.18); }
+  .ev .t { font-weight: 700; font-size: 0.68rem; white-space: nowrap; text-shadow: 0 1px 1px rgba(0,0,0,0.28); }
+  /* Farbe je Wochentag (Mo–Fr) — bringt Struktur statt Einheitsbrei */
+  .ev.d0 { background: linear-gradient(135deg, #2f6cc0, #4785da); }   /* Mo  blau   */
+  .ev.d1 { background: linear-gradient(135deg, #1f9b82, #2bb89b); }   /* Di  türkis */
+  .ev.d2 { background: linear-gradient(135deg, #c07f1d, #d99a31); }   /* Mi  ocker  */
+  .ev.d3 { background: linear-gradient(135deg, #c44f7d, #dd6a96); }   /* Do  rosé   */
+  .ev.d4 { background: linear-gradient(135deg, #6f4cc4, #8a63e0); }   /* Fr  violett*/
+  .ev.vorbehalt { opacity: 0.8; border: 2px dashed rgba(255,255,255,0.9); border-left-width: 4px; }
 
   .nowline { position: absolute; left: 0; right: 0; height: 2px; background: var(--now); z-index: 5; }
   .nowline::before { content: ''; position: absolute; left: -3px; top: -3px; width: 8px; height: 8px; border-radius: 50%; background: var(--now); }
@@ -114,7 +120,7 @@
 
   <div class="legend">
     <span><i class="frei"></i> frei</span>
-    <span><i class="gebucht"></i> gebucht</span>
+    <span><i class="gebucht"></i> belegt (Farbe = Wochentag)</span>
     <span><i class="vorbehalt"></i> mit Vorbehalt</span>
   </div>
 
@@ -284,7 +290,7 @@ function renderWeek() {
       const left = 'calc(' + (lane * wPct) + '% + ' + gap + 'px)';
       const width = 'calc(' + wPct + '% - ' + (gap * 2) + 'px)';
       const titel = (e.kind === 'vorbehalt') ? 'mit Vorbehalt' : 'belegt';
-      col += '<div class="ev ' + e.kind + '" title="' + titel + '" style="top:' + top + 'px;height:' + (h - 1) + 'px;left:' + left + ';width:' + width + '">'
+      col += '<div class="ev ' + e.kind + ' d' + t + '" title="' + titel + '" style="top:' + top + 'px;height:' + (h - 1) + 'px;left:' + left + ';width:' + width + '">'
            + '<span class="t">' + e._label + '</span>'
            + '</div>';
     }
